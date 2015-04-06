@@ -4,8 +4,9 @@ import org.scalatest._
 import org.scalacheck.Gen
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import _root_.models.cards._
+import specs.ModelSpec
 
-class ArrowSpec extends WordSpec with Matchers with ShouldMatchers with GeneratorDrivenPropertyChecks {
+class ArrowSpec extends ModelSpec {
   val zeroByte: Byte = 0x00
   val maxByte: Byte = 0xFF.toByte
 
@@ -48,10 +49,10 @@ class ArrowSpec extends WordSpec with Matchers with ShouldMatchers with Generato
 
     "arrows are repeated and/or size is greater than MAX_ARROWS" should {
       "throw an IllegalArgumentException" in {
-        forAll(arrowsGen) { (arrows: Seq[Arrow]) =>
+        forAll(arrowsGen) { (arrows: List[Arrow]) =>
           whenever(arrows.distinct.size != arrows.size || arrows.size > Arrow.MAX_ARROWS) {
             intercept[IllegalArgumentException] {
-              Arrow.compress(arrows.toList)
+              Arrow.compress(arrows)
             }
           }
         }
