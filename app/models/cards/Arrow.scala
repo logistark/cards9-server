@@ -1,5 +1,7 @@
 package models.cards
 
+import enumeratum._
+
 /**
  * Card arrows.
  *
@@ -11,25 +13,26 @@ package models.cards
  * ---------------------------------
  *
  */
-sealed trait Arrow {
+sealed trait Arrow extends EnumEntry {
   def hex: Byte
   def opposite: Arrow
 }
 
-case object N extends Arrow { val hex: Byte = 0x80.toByte; val opposite: Arrow = S }
-case object NE extends Arrow { val hex: Byte = 0x40; val opposite: Arrow = SW }
-case object E extends Arrow { val hex: Byte = 0x20; val opposite: Arrow = W }
-case object SE extends Arrow { val hex: Byte = 0x10; val opposite: Arrow = NW }
-case object S extends Arrow { val hex: Byte = 0x08; val opposite: Arrow = N }
-case object SW extends Arrow { val hex: Byte = 0x04; val opposite: Arrow = NE }
-case object W extends Arrow { val hex: Byte = 0x02; val opposite: Arrow = E }
-case object NW extends Arrow { val hex: Byte = 0x01; val opposite: Arrow = SE }
+object Arrow extends Enum[Arrow] {
+  val values: List[Arrow] = findValues.toList
 
-object Arrow {
+  case object N extends Arrow { val hex: Byte = 0x80.toByte; val opposite: Arrow = S }
+  case object NE extends Arrow { val hex: Byte = 0x40; val opposite: Arrow = SW }
+  case object E extends Arrow { val hex: Byte = 0x20; val opposite: Arrow = W }
+  case object SE extends Arrow { val hex: Byte = 0x10; val opposite: Arrow = NW }
+  case object S extends Arrow { val hex: Byte = 0x08; val opposite: Arrow = N }
+  case object SW extends Arrow { val hex: Byte = 0x04; val opposite: Arrow = NE }
+  case object W extends Arrow { val hex: Byte = 0x02; val opposite: Arrow = E }
+  case object NW extends Arrow { val hex: Byte = 0x01; val opposite: Arrow = SE }
+
   type Coords = (Int, Int)
 
-  val MAX_ARROWS = 8
-  val allArrows: List[Arrow] = List(N, NE, E, SE, S, SW, W, NW)
+  val MAX_ARROWS = values.size
 
   /**
    * Get the coordinates of the arrow, given the center.
@@ -60,7 +63,7 @@ object Arrow {
    *
    * @return a list with the arrows contained into the packed byte
    */
-  def extract(packed: Byte): List[Arrow] = allArrows.filterNot(arrow => (arrow.hex & packed) == 0)
+  def extract(packed: Byte): List[Arrow] = values.filterNot(arrow => (arrow.hex & packed) == 0)
 
   /**
    * Compresses a list of arrows into a packed byte.

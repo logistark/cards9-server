@@ -23,7 +23,7 @@ class ArrowSpec extends ModelSpec {
       }
 
       "return list of arrows composed of all arrows" in {
-        Arrow.extract(maxByte).toSet should be(Arrow.allArrows.toSet)
+        Arrow.extract(maxByte).toSet should be(Arrow.values.toSet)
       }
     }
 
@@ -38,7 +38,7 @@ class ArrowSpec extends ModelSpec {
 
   "A list of arrows" when {
     val arrowsGen = Gen.choose(1, Arrow.MAX_ARROWS + 1) flatMap { size =>
-      Gen.listOfN(size, Gen.oneOf(Arrow.allArrows))
+      Gen.listOfN(size, Gen.oneOf(Arrow.values))
     }
 
     "empty" should {

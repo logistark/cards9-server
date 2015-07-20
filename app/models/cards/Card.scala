@@ -2,8 +2,8 @@ package models.cards
 
 import scala.util.Random
 import scala.math.{ max, min }
-import Card._
 import services.settings.GameSettings
+import enumeratum._
 
 /**
  * Battle class of the card.
@@ -15,11 +15,16 @@ import services.settings.GameSettings
  *
  * Reference: [[http://finalfantasy.wikia.com/wiki/Tetra_Master_(Minigame)#Battle_class_stat Final Fantasy Wiki]]
  */
-sealed trait BattleClass { def uiChar: Char }
-case object Physical extends BattleClass { val uiChar: Char = 'P' }
-case object Magical extends BattleClass { val uiChar: Char = 'M' }
-case object Flexible extends BattleClass { val uiChar: Char = 'X' }
-case object Assault extends BattleClass { val uiChar: Char = 'A' }
+sealed trait BattleClass extends EnumEntry { def uiChar: Char }
+
+object BattleClass extends Enum[BattleClass] {
+  val values = findValues
+
+  case object Physical extends BattleClass { val uiChar: Char = 'P' }
+  case object Magical extends BattleClass { val uiChar: Char = 'M' }
+  case object Flexible extends BattleClass { val uiChar: Char = 'X' }
+  case object Assault extends BattleClass { val uiChar: Char = 'A' }
+}
 
 /**
  * Unique card instance.
@@ -36,12 +41,19 @@ case object Assault extends BattleClass { val uiChar: Char = 'A' }
 case class Card(
   id: Int,
   ownerId: Int,
-  cardType: CardType,
+  cardType: CardClass,
   power: Int,
   bclass: BattleClass,
   pdef: Int,
   mdef: Int,
   arrows: List[Arrow])(implicit gameSettings: GameSettings) {
+
+  import BattleClass._
+
+  require(power < gameSettings.CARD_MAX_LEVEL)
+  require(pdef < gameSettings.CARD_MAX_LEVEL)
+  require(mdef < gameSettings.CARD_MAX_LEVEL)
+  require(arrows.distinct.size == arrows.size && arrows.size <= Arrow.MAX_ARROWS)
 
   /**
    * Challenge another card.
@@ -55,15 +67,6 @@ case class Card(
     // We need an arrow pointing to the other card
     require(arrows.contains(side))
 
-    def hitPoints(stat: Int): Int = stat * gameSettings.CARD_MAX_LEVEL
-
-    // Battle maths
-    def statVs(atkStat: Int, defStat: Int): (Int, Int) = {
-      val p1atk = hitPoints(atkStat) + Random.nextInt(gameSettings.CARD_MAX_LEVEL)
-      val p2def = hitPoints(defStat) + Random.nextInt(gameSettings.CARD_MAX_LEVEL)
-      (p1atk - Random.nextInt(p1atk + 1), p2def - Random.nextInt(p2def + 1))
-    }
-
     // Fight!!
     if (other.arrows.contains(side.opposite)) {
       val (atkStat, defStat) = bclass match {
@@ -74,7 +77,16 @@ case class Card(
           min(min(other.power, other.pdef), other.mdef))
       }
 
-      val (atkScore, defScore) = statVs(atkStat, defStat)
+      lazy val (atkScore, defScore) = statVs(atkStat, defStat)
+
+      def hitPoints(stat: Int): Int = stat * gameSettings.CARD_MAX_LEVEL
+
+      // Battle maths
+      def statVs(atkStat: Int, defStat: Int): (Int, Int) = {
+        val p1atk = hitPoints(atkStat) + Random.nextInt(gameSettings.CARD_MAX_LEVEL)
+        val p2def = hitPoints(defStat) + Random.nextInt(gameSettings.CARD_MAX_LEVEL)
+        (p1atk - Random.nextInt(p1atk + 1), p2def - Random.nextInt(p2def + 1))
+      }
 
       Fight(this, other, atkScore, defScore, atkScore > defScore)
     } else {
