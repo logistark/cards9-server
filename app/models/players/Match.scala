@@ -10,13 +10,7 @@ case class Match(
   board: Board,
   fights: List[Fight]) {
 
-  def addFight(fight: Fight): Match =
-    Match(
-      player1,
-      player2,
-      board,
-      fights :+ fight
-    )
+  def addFight(fight: Fight): Match = this.copy(fights = fights :+ fight)
 
   /**
    * Get the current score of the match.

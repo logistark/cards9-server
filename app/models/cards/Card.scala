@@ -3,6 +3,7 @@ package models.cards
 import scala.util.Random
 import scala.math.{ max, min }
 import Card._
+import services.settings.GameSettings
 
 /**
  * Battle class of the card.
@@ -40,7 +41,7 @@ case class Card(
   bclass: BattleClass,
   pdef: Int,
   mdef: Int,
-  arrows: List[Arrow]) {
+  arrows: List[Arrow])(implicit gameSettings: GameSettings) {
 
   /**
    * Challenge another card.
@@ -54,12 +55,12 @@ case class Card(
     // We need an arrow pointing to the other card
     require(arrows.contains(side))
 
-    def hitPoints(stat: Int): Int = stat * MAX_LEVEL
+    def hitPoints(stat: Int): Int = stat * gameSettings.CARD_MAX_LEVEL
 
     // Battle maths
     def statVs(atkStat: Int, defStat: Int): (Int, Int) = {
-      val p1atk = hitPoints(atkStat) + Random.nextInt(MAX_LEVEL)
-      val p2def = hitPoints(defStat) + Random.nextInt(MAX_LEVEL)
+      val p1atk = hitPoints(atkStat) + Random.nextInt(gameSettings.CARD_MAX_LEVEL)
+      val p2def = hitPoints(defStat) + Random.nextInt(gameSettings.CARD_MAX_LEVEL)
       (p1atk - Random.nextInt(p1atk + 1), p2def - Random.nextInt(p2def + 1))
     }
 
@@ -81,9 +82,4 @@ case class Card(
       Fight(this, other, 0, 0, true)
     }
   }
-
-}
-
-object Card {
-  val MAX_LEVEL = 16
 }

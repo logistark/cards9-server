@@ -6,6 +6,7 @@ import scala.util.Random
 import Board.Hand
 import models.cards.Arrow
 import models.cards.Arrow.Coords
+import services.settings.GameSettings
 
 /**
  * Possible colors of a card.
@@ -25,7 +26,7 @@ case object Free extends Square { override def toString = "F" }
 case class Board(
   grid: Array[Array[Square]],
   redPlayer: Hand,
-  bluePlayer: Hand) {
+  bluePlayer: Hand)(implicit gameSettings: GameSettings) {
 
   /**
    * Adds a new occupied square to the board.
@@ -71,10 +72,10 @@ case class Board(
 
     grid(i)(j) match {
       case Occupied(card, color) => grid(i)(j) = Occupied(card, color.flip)
-      case _                     => // ERROR
+      case Block | Free          => // ERROR
     }
 
-    Board(grid.clone, redPlayer, bluePlayer)
+    this.copy(grid = grid.clone)
   }
 
   /**
@@ -89,7 +90,7 @@ case class Board(
     coords
       .filter(coords => Board.areValidCoords(coords._1, coords._2))
       .map(coords => flip(coords._1, coords._2))
-    Board(grid.clone, redPlayer, bluePlayer)
+    this.copy(grid = grid.clone)
   }
 
   /**
@@ -118,7 +119,7 @@ case class Board(
               }
           }
 
-      case _ => List.empty // Maybe error
+      case Block | Free => List.empty // Maybe error
     }
   }
 
@@ -143,32 +144,22 @@ case class Board(
 object Board {
   type Hand = Set[Card]
 
-  /**
-   * Size of the squared board side.
-   */
-  val BOARD_SIZE: Int = 4
-
-  /**
-   * Maximum number of blocks on the board.
-   */
-  val MAX_BLOCKS: Int = 6
-
   // Check against 
-  private def areValidCoords(i: Int, j: Int): Boolean = {
-    (i >= 0 && i < BOARD_SIZE && j >= 0 && j < BOARD_SIZE)
+  private def areValidCoords(i: Int, j: Int)(implicit gameSettings: GameSettings): Boolean = {
+    (i >= 0 && i < gameSettings.BOARD_SIZE && j >= 0 && j < gameSettings.BOARD_SIZE)
   }
 
   /**
    * Creates a fresh free board with some random blocks on it and the red and
    * blue player hands of cards.
    */
-  def random(redPlayer: Hand, bluePlayer: Hand): Board = {
-    val randomBlocks: Int = Random.nextInt(MAX_BLOCKS + 1)
+  def random(redPlayer: Hand, bluePlayer: Hand)(implicit gameSettings: GameSettings): Board = {
+    val randomBlocks: Int = Random.nextInt(gameSettings.BOARD_MAX_BLOCKS + 1)
 
     // All possible coords of the grid
     val coords: Array[(Int, Int)] = Array((for {
-      i <- (0 until BOARD_SIZE)
-      j <- (0 until BOARD_SIZE)
+      i <- (0 until gameSettings.BOARD_SIZE)
+      j <- (0 until gameSettings.BOARD_SIZE)
     } yield (i, j)): _*)
 
     // Fisher-Yates
@@ -182,7 +173,7 @@ object Board {
     }
 
     // Create a new grid of Free squares and then throw in the random blocks
-    val grid: Array[Array[Square]] = Array.fill(BOARD_SIZE, BOARD_SIZE)(Free)
+    val grid: Array[Array[Square]] = Array.fill(gameSettings.BOARD_SIZE, gameSettings.BOARD_SIZE)(Free)
 
     coords.take(randomBlocks).map {
       case (i, j) =>
