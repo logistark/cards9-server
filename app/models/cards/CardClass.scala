@@ -1,6 +1,7 @@
 package models.cards
 
 import java.net.URL
+import cards9.game.GameTypes.CardClassId
 
 /**
  * Card class.
@@ -10,6 +11,6 @@ import java.net.URL
  * @param img url of the image for this card
  */
 case class CardClass(
-  id: Int,
+  id: CardClassId,
   name: String,
   img: URL)

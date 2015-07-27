@@ -1,7 +1,7 @@
 package models.players
 
-import models.cards.Card
+import cards9.game.GameTypes.{ PlayerId, CardId }
 
 case class Player(
-  id: Int,
-  cards: List[Card])
+  id: PlayerId,
+  cards: List[CardId])

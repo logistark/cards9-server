@@ -2,11 +2,11 @@ package models.players
 
 import models.cards.Fight
 import models.boards.{ Board, Red, Blue }
-import Match.Score
+import cards9.game.GameTypes.{ PlayerId, Score }
 
 case class Match(
-  player1: Player, // Red player
-  player2: Player, // Blue player
+  player1: PlayerId, // Red player
+  player2: PlayerId, // Blue player
   board: Board,
   fights: List[Fight] = Nil) {
 
@@ -18,8 +18,4 @@ case class Match(
    * @return a tuple with scores (Red, Blue)
    */
   def score: Score = (board.cardsOf(Red).length, board.cardsOf(Blue).length)
-}
-
-object Match {
-  type Score = (Int, Int)
 }

@@ -4,6 +4,7 @@ import scala.util.Random
 import scala.math.{ max, min }
 import services.settings.GameSettings
 import enumeratum._
+import cards9.game.GameTypes.{ CardId, CardClassId }
 
 /**
  * Battle class of the card.
@@ -39,9 +40,9 @@ object BattleClass extends Enum[BattleClass] {
  * @param arrows list of atk/def arrows
  */
 case class Card(
-  id: Int,
+  id: CardId,
   ownerId: Int,
-  cardType: CardClass,
+  cardType: CardClassId,
   power: Int,
   bclass: BattleClass,
   pdef: Int,
@@ -88,10 +89,10 @@ case class Card(
         (p1atk - Random.nextInt(p1atk + 1), p2def - Random.nextInt(p2def + 1))
       }
 
-      Fight(this, other, atkScore, defScore, atkScore > defScore)
+      Fight(this.id, other.id, atkScore, defScore, atkScore > defScore)
     } else {
       // Instant win 
-      Fight(this, other, 0, 0, true)
+      Fight(this.id, other.id, 0, 0, true)
     }
   }
 }

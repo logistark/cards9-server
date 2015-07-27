@@ -15,6 +15,7 @@ class CardSpec extends ModelSpec {
       override val BOARD_SIZE: Int = 4
       override val BOARD_MAX_BLOCKS: Int = 6
       override val CARD_MAX_LEVEL: Int = 16
+      override val MAX_HAND_CARDS: Int = 5
     }
 
     "created" should {
@@ -28,13 +29,13 @@ class CardSpec extends ModelSpec {
 
       "have a number of arrows less or equal than max arrows" in {
         forAll(CardGenerator) { card: Card =>
-          card.arrows.size <= Arrow.MAX_ARROWS
+          card.arrows.size should be <= Arrow.MAX_ARROWS
         }
       }
 
       "have a list of distinct arrows" in {
         forAll(CardGenerator) { card: Card =>
-          card.arrows.distinct == card.arrows
+          card.arrows.distinct should be equals card.arrows
         }
       }
     }

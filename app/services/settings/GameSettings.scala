@@ -12,7 +12,12 @@ trait GameSettings {
   def BOARD_MAX_BLOCKS: Int
 
   /**
-   * Maximum level for card stats
+   * Maximum level for card stats.
    */
   def CARD_MAX_LEVEL: Int
+
+  /**
+   * Maximum number for cards in hand.
+   */
+  def MAX_HAND_CARDS: Int
 }

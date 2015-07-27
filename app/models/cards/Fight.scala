@@ -1,5 +1,7 @@
 package models.cards
 
+import cards9.game.GameTypes.{ CardId, FightId }
+
 /**
  * Result of a card fight.
  *
@@ -10,8 +12,8 @@ package models.cards
  * @param atkWinner true if attacker was the winner of the fight
  */
 case class Fight(
-  attacker: Card,
-  defender: Card,
+  attacker: CardId,
+  defender: CardId,
   atkPoints: Int,
   defPoints: Int,
   atkWinner: Boolean)

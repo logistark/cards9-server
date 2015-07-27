@@ -19,11 +19,11 @@ class ArrowSpec extends ModelSpec {
 
     "all bits set to one" should {
       "return list of arrows of size MAX_ARROWS" in {
-        Arrow.extract(maxByte).size should be(Arrow.MAX_ARROWS)
+        Arrow.extract(maxByte).size should be equals Arrow.MAX_ARROWS
       }
 
       "return list of arrows composed of all arrows" in {
-        Arrow.extract(maxByte).toSet should be(Arrow.values.toSet)
+        Arrow.extract(maxByte).toSet should be equals Arrow.values.toSet
       }
     }
 
@@ -43,7 +43,7 @@ class ArrowSpec extends ModelSpec {
 
     "empty" should {
       "return a zero compressed byte" in {
-        Arrow.compress(Nil) should be(zeroByte)
+        Arrow.compress(Nil) should be equals zeroByte
       }
     }
 
@@ -63,7 +63,7 @@ class ArrowSpec extends ModelSpec {
       "compress and extract the same list" in {
         forAll(arrowsGen) { (arrows: List[Arrow]) =>
           whenever(arrows.distinct.size == arrows.size && arrows.size <= Arrow.MAX_ARROWS) {
-            Arrow.extract(Arrow.compress(arrows)).toSet == arrows.toSet
+            Arrow.extract(Arrow.compress(arrows)).toSet should be equals arrows.toSet
           }
         }
       }
