@@ -8,7 +8,7 @@ case class Match(
   player1: Player, // Red player
   player2: Player, // Blue player
   board: Board,
-  fights: List[Fight]) {
+  fights: List[Fight] = Nil) {
 
   def addFight(fight: Fight): Match = this.copy(fights = fights :+ fight)
 
