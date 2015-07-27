@@ -1,9 +1,8 @@
 package models
 
 import org.scalatest._
-import org.scalacheck.Gen
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import _root_.models.cards._
+import models.cards._
+import models.ModelGens._
 import specs.ModelSpec
 
 class ArrowSpec extends ModelSpec {
@@ -37,10 +36,6 @@ class ArrowSpec extends ModelSpec {
   }
 
   "A list of arrows" when {
-    val arrowsGen = Gen.choose(1, Arrow.MAX_ARROWS + 1) flatMap { size =>
-      Gen.listOfN(size, Gen.oneOf(Arrow.values))
-    }
-
     "empty" should {
       "return a zero compressed byte" in {
         Arrow.compress(Nil) should be equals zeroByte
@@ -49,7 +44,7 @@ class ArrowSpec extends ModelSpec {
 
     "arrows are repeated and/or size is greater than MAX_ARROWS" should {
       "throw an IllegalArgumentException" in {
-        forAll(arrowsGen) { (arrows: List[Arrow]) =>
+        forAll(InvalidArrowsGenerator) { arrows: List[Arrow] =>
           whenever(arrows.distinct.size != arrows.size || arrows.size > Arrow.MAX_ARROWS) {
             intercept[IllegalArgumentException] {
               Arrow.compress(arrows)
@@ -61,10 +56,8 @@ class ArrowSpec extends ModelSpec {
 
     "valid random arrows are selected" should {
       "compress and extract the same list" in {
-        forAll(arrowsGen) { (arrows: List[Arrow]) =>
-          whenever(arrows.distinct.size == arrows.size && arrows.size <= Arrow.MAX_ARROWS) {
-            Arrow.extract(Arrow.compress(arrows)).toSet should be equals arrows.toSet
-          }
+        forAll { arrows: List[Arrow] =>
+          Arrow.extract(Arrow.compress(arrows)).toSet should be(arrows.toSet)
         }
       }
     }

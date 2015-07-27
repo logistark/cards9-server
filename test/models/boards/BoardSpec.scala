@@ -1,11 +1,8 @@
 package models.boards
 
 import org.scalatest._
-import org.scalacheck.Gen
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import models.cards._
 import models.boards._
-import models.ModelGens.BoardGenerator
+import models.ModelGens._
 import specs.ModelSpec
 import services.settings.GameSettings
 
@@ -21,13 +18,13 @@ class BoardSpec extends ModelSpec {
 
     "created" should {
       "have the size specified" in {
-        forAll(BoardGenerator) { board: Board =>
+        forAll { board: Board =>
           board.grid.length should be(defaultGameSettings.BOARD_SIZE)
         }
       }
 
       "have a number of blocks less or equal than max blocks" in {
-        forAll(BoardGenerator) { board: Board =>
+        forAll { board: Board =>
           lazy val numBlocks: Int = board.grid.foldLeft(0)(sumTotalRows)
 
           def sumTotalRows(total: Int, row: Array[Square]): Int = {

@@ -10,6 +10,13 @@ case class Match(
   board: Board,
   fights: List[Fight] = Nil) {
 
+  /**
+   * Adds a new fight to the match.
+   *
+   * @param fight the new fight
+   *
+   * @return match with the fight added
+   */
   def addFight(fight: Fight): Match = this.copy(fights = fights :+ fight)
 
   /**

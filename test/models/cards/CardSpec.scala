@@ -1,10 +1,8 @@
 package models.cards
 
 import org.scalatest._
-import org.scalacheck.Gen
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import models.cards._
-import models.ModelGens.CardGenerator
+import models.ModelGens._
 import specs.ModelSpec
 import services.settings.GameSettings
 
@@ -19,23 +17,33 @@ class CardSpec extends ModelSpec {
     }
 
     "created" should {
-      "have correct stats levels according to game settings" in {
-        forAll(CardGenerator) { card: Card =>
-          card.power < defaultGameSettings.CARD_MAX_LEVEL &&
-            card.pdef < defaultGameSettings.CARD_MAX_LEVEL &&
-            card.mdef < defaultGameSettings.CARD_MAX_LEVEL
+      "have correct power level according to game settings" in {
+        forAll { card: Card =>
+          card.power should be < defaultGameSettings.CARD_MAX_LEVEL
+        }
+      }
+
+      "have correct physical defense level according to game settings" in {
+        forAll { card: Card =>
+          card.pdef should be < defaultGameSettings.CARD_MAX_LEVEL
+        }
+      }
+
+      "have correct magic defense level according to game settings" in {
+        forAll { card: Card =>
+          card.mdef should be < defaultGameSettings.CARD_MAX_LEVEL
         }
       }
 
       "have a number of arrows less or equal than max arrows" in {
-        forAll(CardGenerator) { card: Card =>
+        forAll { card: Card =>
           card.arrows.size should be <= Arrow.MAX_ARROWS
         }
       }
 
       "have a list of distinct arrows" in {
-        forAll(CardGenerator) { card: Card =>
-          card.arrows.distinct should be equals card.arrows
+        forAll { card: Card =>
+          card.arrows.distinct should be(card.arrows)
         }
       }
     }
