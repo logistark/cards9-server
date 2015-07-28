@@ -4,7 +4,7 @@ import scala.util.Random
 import scala.math.{ max, min }
 import services.settings.GameSettings
 import enumeratum._
-import cards9.game.GameTypes.{ CardId, CardClassId }
+import cards9.game.GameTypes.{ CardId, CardClassId, PlayerId }
 
 /**
  * Battle class of the card.
@@ -41,7 +41,7 @@ object BattleClass extends Enum[BattleClass] {
  */
 case class Card(
   id: CardId,
-  ownerId: Int,
+  ownerId: PlayerId,
   cardType: CardClassId,
   power: Int,
   bclass: BattleClass,

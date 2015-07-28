@@ -1,6 +1,7 @@
 package models.cards
 
 import cards9.game.GameTypes.{ CardId, FightId }
+import org.joda.time.DateTime
 
 /**
  * Result of a card fight.
@@ -16,4 +17,5 @@ case class Fight(
   defender: CardId,
   atkPoints: Int,
   defPoints: Int,
-  atkWinner: Boolean)
+  atkWinner: Boolean,
+  dateTime: DateTime = DateTime.now)
