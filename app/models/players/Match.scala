@@ -1,6 +1,7 @@
 package models.players
 
 import models.cards.Fight
+import models.boards.Board._
 import models.boards.{ Board, Red, Blue }
 import cards9.game.GameTypes.{ PlayerId, Score }
 
@@ -24,5 +25,5 @@ case class Match(
    *
    * @return a tuple with scores (Red, Blue)
    */
-  def score: Score = (board.cardsOf(Red).length, board.cardsOf(Blue).length)
+  def score: Score = (cardsOf(board,Red).length, cardsOf(board,Blue).length)
 }

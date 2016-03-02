@@ -1,6 +1,7 @@
 package models.cards
 
 import enumeratum._
+import models.boards.Coordinate
 
 /**
  * Card arrows.
@@ -30,7 +31,6 @@ object Arrow extends Enum[Arrow] {
   case object W extends Arrow { val hex: Byte = 0x02; val opposite: Arrow = E }
   case object NW extends Arrow { val hex: Byte = 0x01; val opposite: Arrow = SE }
 
-  type Coords = (Int, Int)
 
   val MAX_ARROWS = values.size
 
@@ -40,11 +40,12 @@ object Arrow extends Enum[Arrow] {
    * @param i row of the center
    * @param j column of the center
    * @param arrow get coords for this arrow
-   *
    * @return a tuple with the coordinates of the arrow
    */
-  def arrowCoords(i: Int, j: Int, arrow: Arrow): Coords = {
-    arrow match {
+  def arrowCoords(coords: Coordinate, arrow: Arrow): Coordinate = {
+    val i = coords.i
+    val j = coords.j
+    val coordPair = arrow match {
       case N  => (i - 1, j)
       case NE => (i - 1, j + 1)
       case E  => (i, j + 1)
@@ -54,13 +55,13 @@ object Arrow extends Enum[Arrow] {
       case W  => (i, j - 1)
       case NW => (i - 1, j - 1)
     }
+    Coordinate(coordPair._1, coordPair._2)
   }
 
   /**
    * Extract a list of arrows from a packed byte.
    *
    * @param packed a byte with packed arrows
-   *
    * @return a list with the arrows contained into the packed byte
    */
   def extract(packed: Byte): List[Arrow] = values.filterNot(arrow => (arrow.hex & packed) == 0)
@@ -71,7 +72,6 @@ object Arrow extends Enum[Arrow] {
    * @param arrows list of arrows
    * <b>Precondition:</b>
    * arrows must be a list of distinct arrows, with a max size of [[MAX_ARROWS]]
-   *
    * @return a byte with the arrows compressed
    */
   def compress(arrows: List[Arrow]): Byte = {
