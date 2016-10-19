@@ -5,7 +5,6 @@ import Array._
 import scala.util.Random
 import Board.Hand
 import models.cards.Arrow
-import models.cards.Arrow.Coords
 import services.settings.GameSettings
 
 /**
@@ -14,6 +13,8 @@ import services.settings.GameSettings
 sealed trait Color { def flip: Color }
 case object Red extends Color { def flip: Color = Blue }
 case object Blue extends Color { def flip: Color = Red }
+
+
 
 /**
  * Possible states of a square.
@@ -26,94 +27,100 @@ case object Free extends Square { override def toString = "F" }
 case class Board(
   grid: Array[Array[Square]],
   redPlayer: Hand,
-  bluePlayer: Hand)(implicit gameSettings: GameSettings) {
+  bluePlayer: Hand,
+  size: Int) {
+  override def toString = grid.map(row => row.mkString(" ")).mkString("\n")
+}
+
+case class Coordinate(i: Int, j:Int)
+
+object Board {
+  type Hand = Set[Card]
+
+
 
   /**
-   * Adds a new occupied square to the board.
-   *
-   * @param i row
-   * @param j column
-   * @param occupied card and color
-   *
-   * @return a new board with the occupied square
-   */
-  def add(i: Int, j: Int, occupied: Occupied, player: Color): Board = {
+    * Adds a new occupied square to the board.
+    *
+    * @param board Board
+    * @param newCoords new Coordinate
+    * @param occupied card and color
+    * @return a new board with the occupied square
+    */
+  def add(board: Board, newCoords: Coordinate, occupied: Occupied, player: Color): Board = {
     // Target square position must be free
-    require(Board.areValidCoords(i, j))
-    require(grid(i)(j) == Free)
+    require(areValidCoords(board, newCoords))
+    require(board.grid(newCoords.i)(newCoords.j) == Free)
 
     // Occupied card must be part of the hand of the selected player
     require(
-      (redPlayer.contains(occupied.card) && player == Red) ||
-        (bluePlayer.contains(occupied.card) && player == Blue)
+      (board.redPlayer.contains(occupied.card) && player == Red) ||
+        (board.bluePlayer.contains(occupied.card) && player == Blue)
     )
 
-    grid(i)(j) = occupied
+    board.grid(newCoords.i)(newCoords.j) = occupied
 
     val (newRed, newBlue) = player match {
-      case Red  => (redPlayer - occupied.card, bluePlayer)
-      case Blue => (redPlayer, bluePlayer - occupied.card)
+      case Red  => (board.redPlayer - occupied.card, board.bluePlayer)
+      case Blue => (board.redPlayer, board.bluePlayer - occupied.card)
     }
 
-    Board(grid.clone, newRed, newBlue)
+    board.copy(grid = board.grid.clone, redPlayer = newRed, bluePlayer = newBlue )
   }
 
   /**
-   * Flips the card on the specified position.
-   *
-   * @param i row
-   * @param j column
-   *
-   * @return a new board with the card flipped
-   */
-  def flip(i: Int, j: Int): Board = {
-    require(Board.areValidCoords(i, j))
-    require(grid(i)(j).isInstanceOf[Occupied])
+    * Flips the card on the specified position.
+    *
+    * @param board Board
+    * @param coords Coordinate
+    * @return a new board with the card flipped
+    */
+  def flip(board: Board, coords: Coordinate): Board = {
+    require(areValidCoords(board, coords))
+    require(board.grid(coords.i)(coords.j).isInstanceOf[Occupied])
 
-    grid(i)(j) match {
-      case Occupied(card, color) => grid(i)(j) = Occupied(card, color.flip)
+    board.grid(coords.i)(coords.j) match {
+      case Occupied(card, color) => board.grid(coords.i)(coords.j) = Occupied(card, color.flip)
       case Block | Free          => // ERROR
     }
 
-    this.copy(grid = grid.clone)
+    board.copy(grid = board.grid.clone)
   }
 
   /**
-   * Flips all the cards on the specified positions.
-   *
-   * @param i row
-   * @param j column
-   *
-   * @return a new board with the card flipped
-   */
-  def flipAll(coords: List[(Int, Int)]): Board = {
+    * Flips all the cards on the specified positions.
+    *
+    * @param board Board
+    * @param coords Coordinate
+    * @return a new board with the card flipped
+    */
+  def flipAll(board: Board, coords: List[Coordinate]): Board = {
     coords
-      .filter(coords => Board.areValidCoords(coords._1, coords._2))
-      .map(coords => flip(coords._1, coords._2))
-    this.copy(grid = grid.clone)
+      .filter(coords => areValidCoords(board, coords))
+      .map(coords => flip(board, coords))
+    board.copy(grid = board.grid.clone)
   }
 
   /**
-   * Get the opponents for a card on the given coords.
-   *
-   * @param i row
-   * @param j column
-   *
-   * @return a list of possible opponents and the direction of the attack
-   */
-  def opponents(i: Int, j: Int): List[(Card, Arrow)] = {
-    require(Board.areValidCoords(i, j))
-    require(grid(i)(j).isInstanceOf[Occupied])
+    * Get the opponents for a card on the given coords.
+    *
+    * @param board Board
+    * @param coords Coordinate
+    * @return a list of possible opponents and the direction of the attack
+    */
+  def opponents(board: Board, coords: Coordinate): List[(Card, Arrow)] = {
+    require(areValidCoords(board, coords))
+    require(board.grid(coords.i)(coords.j).isInstanceOf[Occupied])
 
-    grid(i)(j) match {
+    board.grid(coords.i)(coords.j) match {
       case Occupied(card, color) =>
 
         card.arrows
-          .map(arrow => (arrow, Arrow.arrowCoords(i, j, arrow)))
-          .filter { case (arrow: Arrow, coords: Coords) => Board.areValidCoords(coords._1, coords._2) }
+          .map(arrow => (arrow, Arrow.arrowCoords(coords, arrow)))
+          .filter { case (arrow: Arrow, coords: Coordinate) => areValidCoords(board, coords) }
           .collect {
-            case (arrow, (x, y)) =>
-              grid(x)(y) match {
+            case (arrow, arrowCoord) =>
+              board.grid(arrowCoord.i)(arrowCoord.j) match {
                 case Occupied(enemyCard, enemyColor) if (color != enemyColor) =>
                   (enemyCard, arrow)
               }
@@ -124,29 +131,24 @@ case class Board(
   }
 
   /**
-   * Retrieve all the cards from the board of the given color.
-   *
-   * @param color color of the cards to be retrieved
-   *
-   * @return a list with all the cards on the board with that color
-   */
-  def cardsOf(color: Color): List[Card] = {
-    (grid flatMap { row =>
+    * Retrieve all the cards from the board of the given color.
+    *
+    * @param board Board
+    * @param color color of the cards to be retrieved
+    * @return a list with all the cards on the board with that color
+    */
+  def cardsOf(board: Board, color: Color): List[Card] = {
+    (board.grid flatMap { row =>
       row.collect {
         case Occupied(card, sqColor) if (sqColor == color) => card
       }
     }).toList
 
   }
-  override def toString = grid.map(row => row.mkString(" ")).mkString("\n")
-}
 
-object Board {
-  type Hand = Set[Card]
-
-  // Check against 
-  private def areValidCoords(i: Int, j: Int)(implicit gameSettings: GameSettings): Boolean = {
-    (i >= 0 && i < gameSettings.BOARD_SIZE && j >= 0 && j < gameSettings.BOARD_SIZE)
+  // Check against
+  private def areValidCoords(board: Board, coords: Coordinate): Boolean = {
+    (coords.i >= 0 && coords.i < board.size && coords.j >= 0 && coords.j < board.size)
   }
 
   /**
@@ -180,6 +182,6 @@ object Board {
         grid(i)(j) = Block
     }
 
-    Board(grid, redPlayer, bluePlayer)
+    Board(grid, redPlayer, bluePlayer, gameSettings.BOARD_SIZE)
   }
 }
