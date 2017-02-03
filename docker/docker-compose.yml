@@ -1,0 +1,14 @@
+version: '2'
+services:
+  postgres:
+    ports:
+      - 5432:5432
+    image: "postgres:9.6"
+  cards9-server:
+    image: "cards9-server:0.1"
+    links:
+     - postgres
+    ports:
+     - "9000:9000"
+    depends_on:
+      - postgres

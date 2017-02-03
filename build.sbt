@@ -20,3 +20,9 @@ libraryDependencies ++= Seq(
 )
 
 fork in run := true
+
+packageName in Docker := packageName.value
+
+version in Docker := version.value
+
+enablePlugins(JavaAppPackaging,DockerPlugin)
